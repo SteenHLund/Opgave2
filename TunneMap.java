@@ -16,22 +16,22 @@ public class TunnelMap {
 		
 	    this.rows = 4;
 		this.cols = 4;
-		this.mapData = new char[][] {
-				{'#',' ','#','#'},
-				{' ',' ',' ','Z'},
-				{'#','G',' ','#'},
-				{'#','#',' ','#'},
-		};
-		this.ghosts = new Position[] {new Position(2,1)};
-		this.zombies = new Position[] {new Position(1,3)};
-		
+//		this.mapData = new char[][] {
+//				{'#',' ','#','#'},
+//				{' ',' ',' ','Z'},
+//				{'#','G',' ','#'},
+//				{'#','#',' ','#'},
+//		};
+//		this.ghosts = new Position[] {new Position(2,1)};
+//		this.zombies = new Position[] {new Position(1,3)};
+//		
 	}
 	
 	/*
 	 * Exercise 2.1
 	 */
 	public void loadMap(String fileName) {
-	    System.out.println("Loading map...");
+	    //System.out.println("Loading map...");
 	    
 		// length >= 1
 		// width >= 1
@@ -55,18 +55,31 @@ public class TunnelMap {
 
 	        Scanner sc = new Scanner(file);
 
+	        this.rows = sc.nextInt();
+			this.cols = sc.nextInt();
+
+	        this.mapData = new char[this.rows][this.cols];
+	        
+	        
+	        // For some reason, there is a space here. Not sure why...
 	        System.out.println(sc.nextLine());
-	        System.out.println(sc.nextLine());
+	        
+	        // These are not used but only to allow to go to the map data layout
 	        System.out.println(sc.nextLine());
 	        System.out.println(sc.nextLine());
 	        
-	        int j = 0;
 	        
-	        while (sc.hasNextLine()) {
+	        // Load Map
+	        
+	        for (int j = 0; j < this.rows; j++) {
+	        	
 	            String line = sc.nextLine();
+	            //System.out.println(line.length());
 	            
 	            for (int i = 0; i < line.length(); i++) {
-	            	System.out.println(line.charAt(i));
+	            	
+	            	//System.out.print(line.charAt(i));
+	            	
 	            	if (line.charAt(i) == ' ') {
 		            	this.mapData[j][i] = ' ';
 	            	}
@@ -74,14 +87,20 @@ public class TunnelMap {
 		            	this.mapData[j][i] = '#';
 	            	}
 	            	else if (line.charAt(i) == 'G') {
-		            	this.mapData[j][i] = 'G';
+	            		this.ghosts = new Position[] {new Position(j,i)};
+	            		this.mapData[j][i] = 'G';
 	            	}
 	            	else if (line.charAt(i) == 'Z') {
+	            		this.zombies = new Position[] {new Position(j,i)};
 		            	this.mapData[j][i] = 'Z';
 	            	}
+	            	else {
+	            		System.out.print("Map loading error");
+	            	}
 	            }
+	            //System.out.println();
+            	
 	            
-	            j++;
 	        }
 	        
 	        sc.close();
@@ -90,7 +109,7 @@ public class TunnelMap {
 	        e.printStackTrace();
 	    }
 
-	    System.out.println("Done Loading!");
+	    //System.out.println("Done Loading!");
 	}
 	
 	
