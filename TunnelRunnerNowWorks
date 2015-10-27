@@ -69,9 +69,9 @@ public class TunnelMap {
 					//System.out.println(rows + "\n" + cols + "\n" + numGhosts + "\n" + numZombies);
 				
 
-			        this.mapData = new char[this.rows][this.cols];
-			        int numGhosts = 0, numZombies = 0;
-			        this.ghosts = new Position[numOfGhosts];
+		        this.mapData = new char[this.rows][this.cols];
+		        int numGhosts = 0, numZombies = 0;
+		        this.ghosts = new Position[numOfGhosts];
 				this.zombies = new Position[numOfZombies];
 				
 				for (int j = 0; j < this.rows; j++) {
@@ -88,19 +88,37 @@ public class TunnelMap {
 							} else if (line.charAt(i) == '#') {
 								this.mapData[j][i] = '#';
 							} else if (line.charAt(i) == 'G') {
-								this.ghosts[numGhosts] = new Position(j,i);
-								numGhosts++;
-								this.mapData[j][i] = 'G';
+								if (numGhosts < numOfGhosts) {
+									this.ghosts[numGhosts] = new Position(j,i);
+									numGhosts++;
+									this.mapData[j][i] = 'G';
+								}
+								else {
+									System.out.print("Map loading error");
+									i = this.cols;
+									j = this.rows;
+								}
 							} else if (line.charAt(i) == 'Z') {
-								this.zombies[numZombies] = new Position(j,i);
-								numZombies++;
-								this.mapData[j][i] = 'Z';
+								if (numZombies < numOfZombies) {
+									this.zombies[numZombies] = new Position(j,i);
+									numZombies++;
+									this.mapData[j][i] = 'Z';
+								}
+								else {
+									System.out.print("Map1 loading error");
+									i = this.cols;
+									j = this.rows;
+								}
 							} else {
 								System.out.print("Map loading error");
+								i = this.cols;
+								j = this.rows;
 							}
 						}
 						else {
-							System.out.println("Map loading error");
+							System.out.print("Map loading error");
+							j = this.rows;
+							i = this.cols;
 						}
 					}
 				}
