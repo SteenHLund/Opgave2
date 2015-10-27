@@ -70,8 +70,8 @@ public class TunnelMap {
 			this.tempMapData = new char[this.tempRows][this.tempCols];
 			
 			int numOfGhosts = -1, numOfZombies = -1;
-			this.tempGhosts = new Position[numGhosts];
-			this.tempZombies = new Position[numZombies];
+			this.tempGhosts = new Position[tempNumGhost];
+			this.tempZombies = new Position[tempNumZombies];
 
 			for (int j = 0; j < this.tempRows; j++) {
 				String line = sc.nextLine();
@@ -115,11 +115,12 @@ public class TunnelMap {
 			this.ghosts = new Position[numGhosts];
 			this.zombies = new Position[numZombies];
 			for(int i = 0; i < rows; i++)
-				for(int q = 0; q < cols; q++)
+				for(int q = 0; q < cols; q++) 
 					this.mapData[i][q] = this.tempMapData[i][q];
 			for(int i = 0; i < numGhosts; i++)
 				this.ghosts[i] = this.tempGhosts[i];
-			for(int i = 0; i < numGhosts; i++)
+
+			for(int i = 0; i < numZombies; i++)
 				this.zombies[i] = this.tempZombies[i];
 			sc.close();
 		} catch (Exception e) {
