@@ -50,7 +50,8 @@ public class TunnelMap {
 		File file = new File(fileName);
 
 		// Load 4 first lines here:
-
+		
+		boolean gotError = false;
 		try {
 
 			sc = new Scanner(file);
@@ -68,7 +69,7 @@ public class TunnelMap {
 			int numOfGhosts = 0, numOfZombies = 0;
 			this.ghosts = new Position[numGhosts];
 			this.zombies = new Position[numZombies];
-
+			
 			for (int j = 0; j < this.rows; j++) {
 				String line = sc.nextLine();
 
@@ -81,33 +82,40 @@ public class TunnelMap {
 						} else if (line.charAt(i) == 'G') {
 							numOfGhosts++;
 							if (numOfGhosts > numGhosts)
+								gotError = true;
 								numGhosts /= 0;
 							this.ghosts[numOfGhosts] = new Position(j, i);
 							this.mapData[j][i] = 'G';
 						} else if (line.charAt(i) == 'Z') {
 							numOfZombies++;
 							if (numOfZombies > numZombies)
+								gotError = true;
 								numZombies /= 0;
 							this.zombies[numOfZombies] = new Position(j, i);
 							this.mapData[j][i] = 'Z';
 						} else {
+							gotError = true;
 							numOfZombies /= 0;
 						}
 					} else {
+						gotError = true;
 						numOfZombies /= 0;
 					}
 				}
 				if (numGhosts != numOfGhosts && gotError == false) {
+					gotError = true;
 					System.out.println("Map loading error");
 				}
 
 				else if (numZombies != numOfZombies && gotError == false) {
+					gotError = true;
 					System.out.println("Map loading error");
 				}
 			}
 			
 			sc.close();
 		} catch (Exception e) {
+			gotError = true;
 			System.out.println("Map loading error");
 		}
 	}
