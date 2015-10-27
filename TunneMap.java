@@ -97,7 +97,15 @@ public class TunnelMap {
 						numOfZombies /= 0;
 					}
 				}
+				if (numGhosts != numOfGhosts && gotError == false) {
+					System.out.println("Map loading error");
+				}
+
+				else if (numZombies != numOfZombies && gotError == false) {
+					System.out.println("Map loading error");
+				}
 			}
+			
 			sc.close();
 		} catch (Exception e) {
 			System.out.println("Map loading error");
