@@ -58,8 +58,8 @@ public class TunnelMap {
 			try {
 				this.rows = Integer.parseInt(sc.nextLine());
 				this.cols = Integer.parseInt(sc.nextLine());
-				this.numGhosts = Integer.parseInt(sc.nextLine());
-				this.numZombies = Integer.parseInt(sc.nextLine());
+				int numOfGhosts = Integer.parseInt(sc.nextLine());
+				int numOfZombies = Integer.parseInt(sc.nextLine());
 				
 				
 				
@@ -69,8 +69,10 @@ public class TunnelMap {
 					//System.out.println(rows + "\n" + cols + "\n" + numGhosts + "\n" + numZombies);
 				
 
-		        this.mapData = new char[this.rows][this.cols];
-		        int numOfGhosts = 0, numOfZombies = 0;
+			        this.mapData = new char[this.rows][this.cols];
+			        int numGhosts = 0, numZombies = 0;
+			        this.ghosts = new Position[numOfGhosts];
+				this.zombies = new Position[numOfZombies];
 				
 				for (int j = 0; j < this.rows; j++) {
 
@@ -86,14 +88,12 @@ public class TunnelMap {
 							} else if (line.charAt(i) == '#') {
 								this.mapData[j][i] = '#';
 							} else if (line.charAt(i) == 'G') {
-								this.ghosts = new Position[numGhosts];
-								this.ghosts[numOfGhosts] = new Position(j,i);
-								numOfGhosts++;
+								this.ghosts[numGhosts] = new Position(j,i);
+								numGhosts++;
 								this.mapData[j][i] = 'G';
 							} else if (line.charAt(i) == 'Z') {
-								this.zombies = new Position[numZombies];
-								this.zombies[numOfZombies] = new Position(j,i);
-								numOfZombies++;
+								this.zombies[numZombies] = new Position(j,i);
+								numZombies++;
 								this.mapData[j][i] = 'Z';
 							} else {
 								System.out.print("Map loading error");
