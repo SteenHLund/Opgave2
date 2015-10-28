@@ -1,0 +1,328 @@
+import java.io.*;
+import java.text.ParseException;
+import java.util.*;
+
+/*
+ * This class models a tunnel map 
+ */
+public class TunnelMap {
+	public Scanner sc;
+	public int rows, cols, numGhosts, numZombies;
+	public char[][] mapData; // raw map data, i.e., mapData[i][j] is the char at
+								// row i and column j of the map file. Here i
+								// goes from 0 to rows-1, and j from 0 to
+								// columns-1.
+	public Position[] ghosts; // an array of the ghost positions. The size
+								// should be equal to the number of ghosts.
+	public Position[] zombies; // an array of the zombie positions. The size
+								// should be equal to the number of zombies.
+	public int tempRows, tempCols, tempNumGhost, tempNumZombies;
+	public char[][] tempMapData;
+	public Position[] tempGhosts;
+	public Position[] tempZombies;
+
+	public TunnelMap() {
+		// the following code initializes the object with a simple test map
+
+		this.rows = 4;
+		this.cols = 4;
+		// this.mapData = new char[][] { { '#', ' ', '#', '#' }, { ' ', ' ', '
+		// ', 'Z' }, { '#', 'G', ' ', '#' },
+		// { '#', '#', ' ', '#' }, };
+		// this.ghosts = new Position[] {};
+		// this.zombies = new Position[] {};
+
+	}
+
+	/*
+	 * Exercise 2.1
+	 */
+	public void loadMap(String fileName) {
+		// System.out.println("Loading map...");
+
+		// length >= 1
+		// width >= 1
+
+		// load file using scanner
+
+		// read file data (format):
+		// - length
+		// - Witdh
+		// - Antal Ghosts
+		// - Antal Zombies
+
+		File file = new File(fileName);
+
+		// Load 4 first lines here:
+
+		try {
+			sc = new Scanner(file);
+
+			this.tempRows = Integer.parseInt(sc.nextLine());
+			this.tempCols = Integer.parseInt(sc.nextLine());
+			this.tempNumGhost = Integer.parseInt(sc.nextLine());
+			this.tempNumZombies = Integer.parseInt(sc.nextLine());
+
+			if (this.tempRows < 1 || this.tempCols < 1 || this.tempNumGhost < 0 || this.tempNumZombies < 0) {
+				// System.out.println("Error 1");
+				this.tempRows = 1 / 0;
+			}
+
+			this.tempMapData = new char[this.tempRows][this.tempCols];
+
+			int numOfGhosts = -1, numOfZombies = -1;
+			this.tempGhosts = new Position[tempNumGhost];
+			this.tempZombies = new Position[tempNumZombies];
+
+			for (int j = 0; j < this.tempRows; j++) {
+				String line = sc.nextLine();
+				for (int i = 0; i < this.tempCols; i++) {
+					if (this.tempCols == line.length()) {
+						if (line.charAt(i) == ' ') {
+							this.tempMapData[j][i] = ' ';
+						} else if (line.charAt(i) == '#') {
+							this.tempMapData[j][i] = '#';
+						} else if (line.charAt(i) == 'G') {
+							numOfGhosts++;
+							if (numOfGhosts > tempNumGhost) {
+								// System.out.println("Fail Error 2");
+								tempNumGhost /= 0;
+							}
+							this.tempGhosts[numOfGhosts] = new Position(j, i);
+							this.tempMapData[j][i] = 'G';
+						} else if (line.charAt(i) == 'Z') {
+							numOfZombies++;
+							if (numOfZombies > tempNumZombies) {
+								// System.out.println("Fail Error 3");
+								tempNumZombies /= 0;
+							}
+							this.tempZombies[numOfZombies] = new Position(j, i);
+							this.tempMapData[j][i] = 'Z';
+						} else {
+							// System.out.println("Fail Error 4");
+							numOfZombies /= 0;
+						}
+					} else {
+						// System.out.println("Fail Error 5");
+						numOfZombies /= 0;
+					}
+				}
+			}
+			this.numGhosts = this.tempNumGhost;
+			this.numZombies = this.tempNumZombies;
+			this.rows = this.tempRows;
+			this.cols = this.tempCols;
+			this.mapData = new char[this.rows][this.cols];
+			this.ghosts = new Position[numGhosts];
+			this.zombies = new Position[numZombies];
+			for (int i = 0; i < rows; i++)
+				for (int q = 0; q < cols; q++)
+					this.mapData[i][q] = this.tempMapData[i][q];
+			for (int i = 0; i < numGhosts; i++)
+				this.ghosts[i] = this.tempGhosts[i];
+
+			for (int i = 0; i < numZombies; i++)
+				this.zombies[i] = this.tempZombies[i];
+			sc.close();
+		} catch (Throwable e) {
+			System.out.println("Map loading error");
+		}
+	}
+
+	/*
+	 * Exercise 2.2
+	 */
+	public int[][] distanceMap(Position start) /* throws InterruptedException */ {
+		int distArray[][] = new int[rows][cols];
+
+		for (int i = 0; i < this.rows; i++)
+			for (int q = 0; q < this.cols; q++)
+				distArray[i][q] = -2;
+
+		boolean changed = true;
+
+		distArray[start.row][start.col] = 0;
+		int step = 0;
+
+		if (this.mapData[start.row][start.col] == '#')
+			for (int i = 0; i < this.rows; i++)
+				for (int q = 0; q < this.cols; q++)
+					distArray[i][q] = -1;
+		else {
+			while (changed == true) {
+				changed = false;
+				for (int i = 0; i < this.rows; i++) {
+					for (int q = 0; q < this.cols; q++) {
+						boolean hasUp = false, hasDown = false, hasLeft = false, hasRight = false;
+						if (distArray[i][q] == -2 || distArray[i][q] > 0) {
+							if (distArray[i][q] == -2) {
+								if (this.mapData[i][q] == '#')
+									distArray[i][q] = -1;
+								else {
+									if (q == 0)
+										hasRight = true;
+									else if (q == this.cols - 1)
+										hasLeft = true;
+									else {
+										hasLeft = true;
+										hasRight = true;
+									}
+
+									if (i == 0)
+										hasUp = true;
+									else if (i == this.rows - 1)
+										hasDown = true;
+									else {
+										hasUp = true;
+										hasDown = true;
+									}
+									if (hasUp == true && distArray[i][q + 1] >= 0 && distArray[i][q + 1] == step) {
+										distArray[i][q] = distArray[i][q + 1] + 1;
+										changed = true;
+									} else if (hasDown == true && distArray[i][q - 1] >= 0
+											&& distArray[i][q - 1] == step) {
+										distArray[i][q] = distArray[i][q - 1] + 1;
+										changed = true;
+									} else if (hasLeft == true && distArray[i - 1][q] >= 0
+											&& distArray[i - 1][q] == step) {
+										distArray[i][q] = distArray[i - 1][q] + 1;
+										changed = true;
+									} else if (hasRight == true && distArray[i + 1][q] >= 0
+											&& distArray[i + 1][q] == step) {
+										distArray[i][q] = distArray[i + 1][q] + 1;
+										changed = true;
+									}
+								}
+							}
+						}
+						// if(distArray[i][q] >= 0)
+						// System.out.print(" " + distArray[i][q]);
+						// else
+						// System.out.print(" " + distArray[i][q]);
+					}
+					// System.out.println();
+					// Thread.sleep(500);
+				}
+				// System.out.println("Done with round.");
+				step++;
+			}
+
+			for (int i = 0; i < this.rows; i++)
+				for (int q = 0; q < this.cols; q++)
+					if (distArray[i][q] == -2)
+						distArray[i][q] = -1;
+		}
+		return distArray;
+	}
+
+	/*
+	 * Exercise 2.3
+	 */
+	public Position[] findRoute(Position start, Position end) {
+		int distArray[][] = distanceMap(start);
+		
+		if (distArray[start.row][start.col] == -1 || distArray[end.row][end.col] == -1)
+			return null;
+
+		int numSteps = distArray[end.row][end.col];
+		Position pos = new Position(start.row, start.col);
+		Position[] route = new Position[numSteps];
+
+		for (int i = 1; i <= numSteps; i++) {
+			boolean hasRight = false, hasLeft = false, hasUp = false, hasDown = false;
+			if (pos.col == 0)
+				hasRight = true;
+			else if (pos.col == this.cols - 1)
+				hasLeft = true;
+			else {
+				hasLeft = true;
+				hasRight = true;
+			}
+
+			if (pos.row == 0)
+				hasUp = true;
+			else if (pos.row == this.rows - 1)
+				hasDown = true;
+			else {
+				hasUp = true;
+				hasDown = true;
+			}
+			
+			if(hasUp == true && distArray[pos.row + 1][pos.col] == i) {
+				pos.row += 1;
+				route[i] = pos;
+			} else if(hasDown == true && distArray[pos.row - 1][pos.col] == i) {
+				pos.row -= 1;
+				route[i] = pos;
+			} else if(hasRight == true && distArray[pos.row][pos.col + 1] == i) {
+				pos.col += 1;
+				route[i] = pos;
+			} else if(hasLeft == true && distArray[pos.row][pos.col - 1] == i) {
+				pos.col -= 1;
+				route[i] = pos;
+			}
+			
+			System.out.println(pos);
+		}
+
+		return route;
+	}
+
+	/*
+	 * Exercise 2.4
+	 */
+	public Position[] findSpookyRoute(Position start, Position end) {
+		return null;
+	}
+
+	/*
+	 * Exercise 2.5
+	 */
+	public boolean isSafeRoute(Position[] route) {
+		return true;
+	}
+
+	/*
+	 * The following methods concerns the movement of zombies. You can call them
+	 * in your code, but you should not modify them!
+	 */
+
+	/*
+	 * Returns the position that a zombie located on {currentPosition} will move
+	 * to if its target is located at {targetPosition}. YOU SHOULD NOT MODIFY
+	 * THIS METHOD
+	 */
+	public Position getNextZombiePosition(Position currentPosition, Position targetPosition) {
+		Position nextPosition = new Position(currentPosition.row, currentPosition.col);
+		int dr = targetPosition.row - currentPosition.row;
+		int dc = targetPosition.col - currentPosition.col;
+
+		if (Math.abs(dr) > Math.abs(dc)) {
+			// move vertically
+			dr = dr / Math.abs(dr);
+			dc = 0;
+		} else if (dc != 0) {
+			// move horizontally
+			dr = 0;
+			dc = dc / Math.abs(dc);
+		}
+		// move to next position unless it's a wall
+		if (mapData[currentPosition.row + dr][currentPosition.col + dc] != '#') {
+			nextPosition.row += dr;
+			nextPosition.col += dc;
+		}
+
+		return nextPosition;
+	}
+
+	/*
+	 * Moves all zombies one step towards the position {target}. Assumes
+	 * {target} is a position within the map boundaries. YOU SHOULD NOT MODIFY
+	 * THIS METHOD
+	 */
+	public void moveZombies(Position targetPosition) {
+		for (int i = 0; i < zombies.length; i++) {
+			zombies[i] = getNextZombiePosition(zombies[i], targetPosition);
+		}
+	}
+}
