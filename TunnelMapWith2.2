@@ -302,6 +302,27 @@ public class TunnelMap {
 	 * Exercise 2.5
 	 */
 	public boolean isSafeRoute(Position[] route) {
+		ArrayList<Position> listOfZombies = new ArrayList<Position>();
+		int ghostsFound = 0;
+		
+		for(int i = 0; i < route.length; i++) {
+			for(int q = 0; q < zombies.length; q++)
+				listOfZombies.add(zombies[q]);
+			
+			//System.out.println(mapData[route[i].row][route[i].col]);
+			
+			if(mapData[route[i].row][route[i].col] == '#')
+				return false;
+			if(mapData[route[i].row][route[i].col] == 'G')
+				ghostsFound++;
+			if(i != 0)
+				moveZombies(route[i]);
+			if(listOfZombies.contains(route[i]) || ghostsFound >= 2)
+				return false;
+			
+			listOfZombies.clear();
+		}
+		
 		return true;
 	}
 
