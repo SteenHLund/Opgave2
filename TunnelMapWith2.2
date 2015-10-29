@@ -269,22 +269,31 @@ public class TunnelMap {
 		
 		ArrayList<Position> ALGhosts = new ArrayList<Position>();
 		
-		for(int i = 0; i < ghosts.length; i++) 
-			for(int q = 0; q < shortRoute.length; q++) 
-				if(ghosts[i].row == shortRoute[q].row && ghosts[i].col == shortRoute[i].col) {
-					ghostCounter++;
-					ALGhosts.add(ghosts[i]);
-				}
+		for(int i = 0; i < ghosts.length; i++)
+			ALGhosts.add(new Position(ghosts[i].row, ghosts[i].col));
 		
+		for(int q = 0; q < shortRoute.length; q++)
+			if(ALGhosts.contains(shortRoute[q]))
+				ghostCounter++;
+	
 		if(ghostCounter < 2 || ghosts.length <= 1)
 			return shortRoute;
 		
 		for(int i = 0; i < ghosts.length; i++) {
-			Position temp = new Position(ghosts[i].row, ghosts[i].col);
-			ALGhosts.add(temp);
+			for(int q = 0; q < ghosts.length; q++) {
+				if(i != q) {
+					Position arg = new Position(ghosts[q].row, ghosts[q].col);
+					mapData[arg.row][arg.col] = '#';
+				}
+			}
+			Position properRoute[] = findRoute(start, end);
+			
+			for(int q = 0; q < ghosts.length; q++)
+				mapData[ghosts[q].row][ghosts[q].col] = 'G';
+			
+			if(properRoute != null)
+				return properRoute;
 		}
-		
-		boolean foundRoute = false;
 		
 		return null;
 	}
