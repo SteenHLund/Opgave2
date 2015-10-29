@@ -176,34 +176,27 @@ public class TunnelMap {
 										hasUp = true;
 										hasDown = true;
 									}
-									if (hasUp == true && distArray[i][q + 1] >= 0 && distArray[i][q + 1] == step) {
-										distArray[i][q] = distArray[i][q + 1] + 1;
+									if (hasUp == true && distArray[i + 1][q] >= 0 && distArray[i + 1][q] == step) {
+										distArray[i][q] = distArray[i + 1][q] + 1;
 										changed = true;
-									} else if (hasDown == true && distArray[i][q - 1] >= 0
-											&& distArray[i][q - 1] == step) {
-										distArray[i][q] = distArray[i][q - 1] + 1;
-										changed = true;
-									} else if (hasLeft == true && distArray[i - 1][q] >= 0
+									} else if (hasDown == true && distArray[i - 1][q] >= 0
 											&& distArray[i - 1][q] == step) {
 										distArray[i][q] = distArray[i - 1][q] + 1;
 										changed = true;
-									} else if (hasRight == true && distArray[i + 1][q] >= 0
-											&& distArray[i + 1][q] == step) {
-										distArray[i][q] = distArray[i + 1][q] + 1;
+									} else if (hasLeft == true && distArray[i][q - 1] >= 0
+											&& distArray[i][q - 1] == step) {
+										distArray[i][q] = distArray[i][q - 1] + 1;
+										changed = true;
+									} else if (hasRight == true && distArray[i][q + 1] >= 0
+											&& distArray[i][q + 1] == step) {
+										distArray[i][q] = distArray[i][q + 1] + 1;
 										changed = true;
 									}
 								}
 							}
 						}
-						// if(distArray[i][q] >= 0)
-						// System.out.print(" " + distArray[i][q]);
-						// else
-						// System.out.print(" " + distArray[i][q]);
 					}
-					// System.out.println();
-					// Thread.sleep(500);
 				}
-				// System.out.println("Done with round.");
 				step++;
 			}
 
@@ -225,10 +218,11 @@ public class TunnelMap {
 			return null;
 
 		int numSteps = distArray[end.row][end.col];
-		Position pos = new Position(start.row, start.col);
-		Position[] route = new Position[numSteps];
+		Position[] route = new Position[numSteps + 1];
+		Position pos = new Position(end.row, end.col);
+		route[numSteps] = pos;
 
-		for (int i = 1; i <= numSteps; i++) {
+		for (int i = numSteps - 1; i >= 0; i--) {
 			boolean hasRight = false, hasLeft = false, hasUp = false, hasDown = false;
 			if (pos.col == 0)
 				hasRight = true;
@@ -248,23 +242,21 @@ public class TunnelMap {
 				hasDown = true;
 			}
 			
-			if(hasUp == true && distArray[pos.row + 1][pos.col] == i) {
-				pos.row += 1;
+			if(hasUp == true && distArray[pos.row + 1][pos.col] == i && distArray[pos.row + 1][pos.col] != -1) {
+				pos = new Position(pos.row + 1, pos.col);
 				route[i] = pos;
-			} else if(hasDown == true && distArray[pos.row - 1][pos.col] == i) {
-				pos.row -= 1;
+			} else if(hasDown == true && distArray[pos.row - 1][pos.col] == i && distArray[pos.row - 1][pos.col] != -1) {
+				pos = new Position(pos.row - 1, pos.col);
 				route[i] = pos;
-			} else if(hasRight == true && distArray[pos.row][pos.col + 1] == i) {
-				pos.col += 1;
+			} else if(hasRight == true && distArray[pos.row][pos.col + 1] == i && distArray[pos.row][pos.col + 1] != -1) {
+				pos = new Position(pos.row, pos.col + 1);
 				route[i] = pos;
-			} else if(hasLeft == true && distArray[pos.row][pos.col - 1] == i) {
-				pos.col -= 1;
+			} else if(hasLeft == true && distArray[pos.row][pos.col - 1] == i && distArray[pos.row][pos.col - 1] != -1) {
+				pos = new Position(pos.row, pos.col - 1);
 				route[i] = pos;
 			}
-			
-			System.out.println(pos);
 		}
-
+		
 		return route;
 	}
 
@@ -272,6 +264,28 @@ public class TunnelMap {
 	 * Exercise 2.4
 	 */
 	public Position[] findSpookyRoute(Position start, Position end) {
+		int ghostCounter = 0;
+		Position shortRoute[] = findRoute(start, end);
+		
+		ArrayList<Position> ALGhosts = new ArrayList<Position>();
+		
+		for(int i = 0; i < ghosts.length; i++) 
+			for(int q = 0; q < shortRoute.length; q++) 
+				if(ghosts[i].row == shortRoute[q].row && ghosts[i].col == shortRoute[i].col) {
+					ghostCounter++;
+					ALGhosts.add(ghosts[i]);
+				}
+		
+		if(ghostCounter < 2 || ghosts.length <= 1)
+			return shortRoute;
+		
+		for(int i = 0; i < ghosts.length; i++) {
+			Position temp = new Position(ghosts[i].row, ghosts[i].col);
+			ALGhosts.add(temp);
+		}
+		
+		boolean foundRoute = false;
+		
 		return null;
 	}
 
