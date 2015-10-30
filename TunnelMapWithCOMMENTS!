@@ -1,0 +1,418 @@
+import java.io.*;
+import java.text.ParseException;
+import java.util.*;
+
+/*
+ * This class models a tunnel map 
+ */
+public class TunnelMap {
+	public Scanner sc;
+	public int rows, cols, numGhosts, numZombies;
+	public char[][] mapData; // raw map data, i.e., mapData[i][j] is the char at
+								// row i and column j of the map file. Here i
+								// goes from 0 to rows-1, and j from 0 to
+								// columns-1.
+	public Position[] ghosts; // an array of the ghost positions. The size
+								// should be equal to the number of ghosts.
+	public Position[] zombies; // an array of the zombie positions. The size
+								// should be equal to the number of zombies.
+	public int tempRows, tempCols, tempNumGhost, tempNumZombies;
+	
+	//Temporary arrays used in part 1 for data swapping
+	public char[][] tempMapData;
+	public Position[] tempGhosts;
+	public Position[] tempZombies;
+
+	public TunnelMap() {
+		// the following code initializes the object with a simple test map
+
+		this.rows = 4;
+		this.cols = 4;
+		// this.mapData = new char[][] { { '#', ' ', '#', '#' }, { ' ', ' ', '
+		// ', 'Z' }, { '#', 'G', ' ', '#' },
+		// { '#', '#', ' ', '#' }, };
+		// this.ghosts = new Position[] {};
+		// this.zombies = new Position[] {};
+
+	}
+
+	/*
+	 * Exercise 2.1
+	 */
+	public void loadMap(String fileName) {
+		// System.out.println("Loading map...");
+
+		// length >= 1
+		// width >= 1
+
+		// load file using scanner
+
+		// read file data (format):
+		// - length
+		// - Witdh
+		// - Antal Ghosts
+		// - Antal Zombies
+
+		File file = new File(fileName);
+
+		//Catch any possible errors thrown from parsing, missing files, etc with the highest order error Throwable
+		try {
+			sc = new Scanner(file);
+
+			//Temp variables used for temporary data testing with the data read and parsed from the file
+			this.tempRows = Integer.parseInt(sc.nextLine());
+			this.tempCols = Integer.parseInt(sc.nextLine());
+			this.tempNumGhost = Integer.parseInt(sc.nextLine());
+			this.tempNumZombies = Integer.parseInt(sc.nextLine());
+
+			//If they try to make a board that doesn't exist or negative ghosts or zombies it will throw an error
+			if (this.tempRows < 1 || this.tempCols < 1 || this.tempNumGhost < 0 || this.tempNumZombies < 0)
+				this.tempRows = 1 / 0;
+
+			this.tempMapData = new char[this.tempRows][this.tempCols];
+
+			int numOfGhosts = -1, numOfZombies = -1;
+			//Initialize the ghost and zombie temporary arrays
+			this.tempGhosts = new Position[tempNumGhost];
+			this.tempZombies = new Position[tempNumZombies];
+
+			//Write the entire map in to the map data and check for any possible errors
+			for (int j = 0; j < this.tempRows; j++) {
+				//Read the data from the file
+				String line = sc.nextLine();
+				for (int i = 0; i < this.tempCols; i++) {
+					if (this.tempCols == line.length()) {
+						//Checks to make sure the inputted map only contains valid characters and then
+						//add those characters to mapData array
+						if (line.charAt(i) == ' ')
+							this.tempMapData[j][i] = ' ';
+						else if (line.charAt(i) == '#')
+							this.tempMapData[j][i] = '#';
+						else if (line.charAt(i) == 'G') {
+							numOfGhosts++;
+							//Make sure the number of ghosts that are said to be in the map is true
+							if (numOfGhosts > tempNumGhost)
+								tempNumGhost /= 0;
+							this.tempGhosts[numOfGhosts] = new Position(j, i);
+							this.tempMapData[j][i] = 'G';
+						} else if (line.charAt(i) == 'Z') {
+							numOfZombies++;
+							//Make sure the number of zombies that are said to be in the map is true
+							if (numOfZombies > tempNumZombies)
+								tempNumZombies /= 0;
+							this.tempZombies[numOfZombies] = new Position(j, i);
+							this.tempMapData[j][i] = 'Z';
+						} else
+							numOfZombies /= 0;
+					} else
+						numOfZombies /= 0;
+				}
+			}
+			//Write the temporary data in to the long-term variables used throughout the program if
+			//there were no errors caught.  We didn't want any previous data to be overwritten if there
+			//was an error so we used the temporary variables
+			this.numGhosts = this.tempNumGhost;
+			this.numZombies = this.tempNumZombies;
+			this.rows = this.tempRows;
+			this.cols = this.tempCols;
+			this.mapData = new char[this.rows][this.cols];
+			this.ghosts = new Position[numGhosts];
+			this.zombies = new Position[numZombies];
+			for (int i = 0; i < rows; i++)
+				for (int q = 0; q < cols; q++)
+					this.mapData[i][q] = this.tempMapData[i][q];
+			for (int i = 0; i < numGhosts; i++)
+				this.ghosts[i] = this.tempGhosts[i];
+
+			for (int i = 0; i < numZombies; i++)
+				this.zombies[i] = this.tempZombies[i];
+			sc.close();
+		//If ANY error is thrown, it will display a map loading error and quit
+		} catch (Throwable e) {
+			System.out.println("Map loading error");
+		}
+	}
+
+	/*
+	 * Exercise 2.2
+	 * In this excercise we will create a data grid of the numerical values of distance
+	 * from the starting position to each reachable position on the map
+	 */
+	public int[][] distanceMap(Position start) {
+		int distArray[][] = new int[rows][cols];
+
+		//We start by setting EVERY position in the map to -2
+		for (int i = 0; i < this.rows; i++)
+			for (int q = 0; q < this.cols; q++)
+				distArray[i][q] = -2;
+
+		//This boolean will be used to make an exit clause later on in one of the loops
+		boolean changed = true;
+
+		//Set the starting position to distance of 0 and the step number to 0
+		distArray[start.row][start.col] = 0;
+		int step = 0;
+
+		//If the starting position is within a wall then ALL locations are set as unreachable
+		if (this.mapData[start.row][start.col] == '#')
+			for (int i = 0; i < this.rows; i++)
+				for (int q = 0; q < this.cols; q++)
+					distArray[i][q] = -1;
+		else {
+			//As long as we change at least one number each loop we will keep on looping
+			while (changed == true) {
+				changed = false;
+				for (int i = 0; i < this.rows; i++) {
+					for (int q = 0; q < this.cols; q++) {
+						boolean hasUp = false, hasDown = false, hasLeft = false, hasRight = false;
+						if (distArray[i][q] == -2 || distArray[i][q] > 0) {
+							//First time we run through the loop we set all the walls to a value of -1
+							if (distArray[i][q] == -2) {
+								if (this.mapData[i][q] == '#')
+									distArray[i][q] = -1;
+								else {
+									//We detect if the current position is on the edges of the map
+									//so that we don't accidently try to compare an index that is out of bounds
+									//and we detect what neighbors it has (upper, down, etc)
+									if (q == 0)
+										hasRight = true;
+									else if (q == this.cols - 1)
+										hasLeft = true;
+									else {
+										hasLeft = true;
+										hasRight = true;
+									}
+									if (i == 0)
+										hasUp = true;
+									else if (i == this.rows - 1)
+										hasDown = true;
+									else {
+										hasUp = true;
+										hasDown = true;
+									}
+									//From here we change the number only if the value next to it is
+									//equal to the step so the first time it runs through it will only change
+									//a maximum of 4 non-wall values (i.e. the first time it runs through it
+									//will only change numbers next to a '0' and then '1's the next time it runs
+									if (hasUp == true && distArray[i + 1][q] >= 0 && distArray[i + 1][q] == step) {
+										distArray[i][q] = distArray[i + 1][q] + 1;
+										changed = true;
+									} else if (hasDown == true && distArray[i - 1][q] >= 0
+											&& distArray[i - 1][q] == step) {
+										distArray[i][q] = distArray[i - 1][q] + 1;
+										changed = true;
+									} else if (hasLeft == true && distArray[i][q - 1] >= 0
+											&& distArray[i][q - 1] == step) {
+										distArray[i][q] = distArray[i][q - 1] + 1;
+										changed = true;
+									} else if (hasRight == true && distArray[i][q + 1] >= 0
+											&& distArray[i][q + 1] == step) {
+										distArray[i][q] = distArray[i][q + 1] + 1;
+										changed = true;
+									}
+								}
+							}
+						}
+					}
+				}
+				step++;
+			}
+
+			//If any values were left as -2 after the loop is done it will turn them in to -1's because
+			//that means they could not be reached from the starting position
+			for (int i = 0; i < this.rows; i++)
+				for (int q = 0; q < this.cols; q++)
+					if (distArray[i][q] == -2)
+						distArray[i][q] = -1;
+		}
+		return distArray;
+	}
+
+	/*
+	 * Exercise 2.3
+	 * We find the shortest route every time by starting at the end and counting backwards.
+	 * i.e. if the end is '6' distance from the start it will go to a '5' and then a '4' until
+	 * it reaches the '0', the starting value.  This is guaranteed to return the fastest route
+	 */
+	public Position[] findRoute(Position start, Position end) {
+		int distArray[][] = distanceMap(start);
+
+		//If either the start or the end are an unreachable value, '-1', it will return null
+		if (distArray[start.row][start.col] == -1 || distArray[end.row][end.col] == -1)
+			return null;
+
+		//Creates variables and arrays to be used later in this section of the program
+		int numSteps = distArray[end.row][end.col];
+		Position[] route = new Position[numSteps + 1];
+		Position pos = new Position(end.row, end.col);
+		route[numSteps] = pos;
+
+		//We loop the number of steps it takes to reach the start from the end position
+		for (int i = numSteps - 1; i >= 0; i--) {
+			boolean hasRight = false, hasLeft = false, hasUp = false, hasDown = false;
+			//Find if it is on an edge so that we don't try to compare a value out of the index
+			if (pos.col == 0)
+				hasRight = true;
+			else if (pos.col == this.cols - 1)
+				hasLeft = true;
+			else {
+				hasLeft = true;
+				hasRight = true;
+			}
+			if (pos.row == 0)
+				hasUp = true;
+			else if (pos.row == this.rows - 1)
+				hasDown = true;
+			else {
+				hasUp = true;
+				hasDown = true;
+			}
+
+			//Adds the next position to the route if the value is equal to i, meaning 1 less than the current position
+			//It writes the array from the end to the start
+			if (hasUp == true && distArray[pos.row + 1][pos.col] == i && distArray[pos.row + 1][pos.col] != -1) {
+				pos = new Position(pos.row + 1, pos.col);
+				route[i] = pos;
+			} else
+				if (hasDown == true && distArray[pos.row - 1][pos.col] == i && distArray[pos.row - 1][pos.col] != -1) {
+				pos = new Position(pos.row - 1, pos.col);
+				route[i] = pos;
+			} else if (hasRight == true && distArray[pos.row][pos.col + 1] == i
+					&& distArray[pos.row][pos.col + 1] != -1) {
+				pos = new Position(pos.row, pos.col + 1);
+				route[i] = pos;
+			} else
+				if (hasLeft == true && distArray[pos.row][pos.col - 1] == i && distArray[pos.row][pos.col - 1] != -1) {
+				pos = new Position(pos.row, pos.col - 1);
+				route[i] = pos;
+			}
+		}
+		return route;
+	}
+
+	/*
+	 * Exercise 2.4
+	 * In which we find a route that at max only passes through one ghost by turning all but one in to walls
+	 * temporarily until we find a route or, if no route is found, return null
+	 */
+	public Position[] findSpookyRoute(Position start, Position end) {
+		int ghostCounter = 0;
+		Position shortRoute[] = findRoute(start, end);
+
+		//Writing the ghost positions in to an ArrayList for easy access with the .contains() command
+		ArrayList<Position> ALGhosts = new ArrayList<Position>();
+		for (int i = 0; i < ghosts.length; i++)
+			ALGhosts.add(new Position(ghosts[i].row, ghosts[i].col));
+
+		//Finds a route ignoring if you pass through the ghosts but if you do, then counts how many you do
+		for (int q = 0; q < shortRoute.length; q++)
+			if (ALGhosts.contains(shortRoute[q]))
+				ghostCounter++;
+
+		//if you passed through fewer than two ghosts on the fastest route or there were simply 1 or fewer ghosts in
+		//total on the map, you return the fastest route
+		if (ghostCounter < 2 || ghosts.length <= 1)
+			return shortRoute;
+
+		//Run through the list of all the ghosts and take turns turning all but one in to walls until you find
+		// a valid path for the heroic student to go through without dying.
+		for (int i = 0; i < ghosts.length; i++) {
+			for (int q = 0; q < ghosts.length; q++) {
+				if (i != q) {
+					Position arg = new Position(ghosts[q].row, ghosts[q].col);
+					mapData[arg.row][arg.col] = '#';
+				}
+			}
+			//We attempt to find a route with all of the ghosts but one as a wall
+			Position properRoute[] = findRoute(start, end);
+
+			//Turn the ghosts that became magical walls back in to ghosts
+			for (int q = 0; q < ghosts.length; q++)
+				mapData[ghosts[q].row][ghosts[q].col] = 'G';
+
+			//If a valid route is found then we return it, otherwise we keep looping until one if found
+			//or we have checked all possibilities and there is no possible route
+			if (properRoute != null)
+				return properRoute;
+		}
+		//Worst case scenario.  No good route.  RIP student
+		return null;
+	}
+
+	/*
+	 * Exercise 2.5
+	 * In this we check if the student will be intercepted and eaten by the zombies, ghosts,
+	 *or we try to walk through a wall, etc
+	 */
+	public boolean isSafeRoute(Position[] route) {
+		//Re-write the pos of the zombies for easy access with use of the .contains() command
+		ArrayList<Position> listOfZombies = new ArrayList<Position>();
+		int ghostsFound = 0;
+
+		for (int i = 0; i < route.length; i++) {
+			for (int q = 0; q < zombies.length; q++)
+				listOfZombies.add(zombies[q]);
+
+			//Check if we are trying to walk in to a wall.  If so, return that it is a bad path
+			if (mapData[route[i].row][route[i].col] == '#')
+				return false;
+			//Count the number of ghosts we come across
+			if (mapData[route[i].row][route[i].col] == 'G')
+				ghostsFound++;
+			//Move all the zombies on all iterations of the loops except the first
+			if (i != 0)
+				moveZombies(route[i]);
+			//Bad path if we ever share a position with a zombie or we cross more than 2 ghosts
+			if (listOfZombies.contains(route[i]) || ghostsFound >= 2)
+				return false;
+
+			//Clear the zombie ArrayList for new values
+			listOfZombies.clear();
+		}
+		return true;
+	}
+
+	/*
+	 * The following methods concerns the movement of zombies. You can call them
+	 * in your code, but you should not modify them!
+	 */
+
+	/*
+	 * Returns the position that a zombie located on {currentPosition} will move
+	 * to if its target is located at {targetPosition}. YOU SHOULD NOT MODIFY
+	 * THIS METHOD
+	 */
+	public Position getNextZombiePosition(Position currentPosition, Position targetPosition) {
+		Position nextPosition = new Position(currentPosition.row, currentPosition.col);
+		int dr = targetPosition.row - currentPosition.row;
+		int dc = targetPosition.col - currentPosition.col;
+
+		if (Math.abs(dr) > Math.abs(dc)) {
+			// move vertically
+			dr = dr / Math.abs(dr);
+			dc = 0;
+		} else if (dc != 0) {
+			// move horizontally
+			dr = 0;
+			dc = dc / Math.abs(dc);
+		}
+		// move to next position unless it's a wall
+		if (mapData[currentPosition.row + dr][currentPosition.col + dc] != '#') {
+			nextPosition.row += dr;
+			nextPosition.col += dc;
+		}
+
+		return nextPosition;
+	}
+
+	/*
+	 * Moves all zombies one step towards the position {target}. Assumes
+	 * {target} is a position within the map boundaries. YOU SHOULD NOT MODIFY
+	 * THIS METHOD
+	 */
+	public void moveZombies(Position targetPosition) {
+		for (int i = 0; i < zombies.length; i++) {
+			zombies[i] = getNextZombiePosition(zombies[i], targetPosition);
+		}
+	}
+}
