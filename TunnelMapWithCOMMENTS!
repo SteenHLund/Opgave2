@@ -277,8 +277,7 @@ public class TunnelMap {
 				if (hasDown == true && distArray[pos.row - 1][pos.col] == i && distArray[pos.row - 1][pos.col] != -1) {
 				pos = new Position(pos.row - 1, pos.col);
 				route[i] = pos;
-			} else if (hasRight == true && distArray[pos.row][pos.col + 1] == i
-					&& distArray[pos.row][pos.col + 1] != -1) {
+			} else if (hasRight == true && distArray[pos.row][pos.col + 1] == i && distArray[pos.row][pos.col + 1] != -1) {
 				pos = new Position(pos.row, pos.col + 1);
 				route[i] = pos;
 			} else
@@ -353,20 +352,16 @@ public class TunnelMap {
 			for (int q = 0; q < zombies.length; q++)
 				listOfZombies.add(zombies[q]);
 
-			//Check if we are trying to walk in to a wall.  If so, return that it is a bad path
+			//Check if we are trying to walk in to a wall, zombie, or 2 ghosts.  If so, return that it is a bad path
 			if (mapData[route[i].row][route[i].col] == '#')
 				return false;
-			//Count the number of ghosts we come across
 			if (mapData[route[i].row][route[i].col] == 'G')
 				ghostsFound++;
-			//Move all the zombies on all iterations of the loops except the first
 			if (i != 0)
 				moveZombies(route[i]);
-			//Bad path if we ever share a position with a zombie or we cross more than 2 ghosts
 			if (listOfZombies.contains(route[i]) || ghostsFound >= 2)
 				return false;
 
-			//Clear the zombie ArrayList for new values
 			listOfZombies.clear();
 		}
 		return true;
